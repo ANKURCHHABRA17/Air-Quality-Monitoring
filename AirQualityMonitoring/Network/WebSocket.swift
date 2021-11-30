@@ -7,6 +7,8 @@
 
 import Foundation
 
+internal var timeToRefresh = 10
+
 class WebSocket: NSObject, URLSessionWebSocketDelegate {
     
     let url = URL(string: "ws://city-ws.herokuapp.com")!
@@ -22,7 +24,6 @@ class WebSocket: NSObject, URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
         print("Web Socket did connects")
          ping()
-       // send()
         receive()
     }
     
@@ -53,17 +54,6 @@ class WebSocket: NSObject, URLSessionWebSocketDelegate {
       }
     }
     
-    func send() {
-        DispatchQueue.global().asyncAfter(deadline: .now() + 30) { [self] in
-            webSocketTask.send(.string("New Message")) { error in
-              if let error = error {
-                print("Error when sending a message \(error)")
-              }
-            }
-            self.send()
-        }
-    }
-    
     func receive() {
         webSocketTask.receive { [self] result in
         switch result {
@@ -85,7 +75,7 @@ class WebSocket: NSObject, URLSessionWebSocketDelegate {
         case .failure(let error):
           print("Error when receiving \(error)")
         }
-            DispatchQueue.global().asyncAfter(deadline: .now() + 10) { [self] in
+            DispatchQueue.global().asyncAfter(deadline: .now() + DispatchTimeInterval.seconds(timeToRefresh)) { [self] in
                 receive()
             }
        
